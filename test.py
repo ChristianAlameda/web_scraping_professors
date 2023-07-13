@@ -29,9 +29,5 @@ def test():
         df = pd.read_csv("write_quotes_authors.csv")
         print(df.head(10))
     
-    
-    
-    
-    
 if __name__ == "__main__":
     test()

@@ -7,27 +7,26 @@ import csv
 import pandas as pd
 
 def test():
-    page_to_scrape = requests.get("http://quotes.toscrape.com")
+    page_to_scrape = requests.get("http://people.mjc.edu")
     soup = BeautifulSoup(page_to_scrape.text, "html.parser")
     
-    quotes = soup.findAll("span", attrs = {"class":"text"})
-    authors = soup.findAll("small", attrs = {"class":"author"})
+    name = soup.findAll("a", attrs = {"class":"lnkName"})
     
-    with open("write_quotes_authors.csv", "w", encoding='utf-8') as file:
+    title = soup.findAll("span", attrs = {"class":"lblTitle"})
+    
+    email = soup.findAll("a", attrs = {"class":"lnkEmail"})
+    
+    with open("MODESTO.csv", "w", encoding='utf-8') as file:
     
         writer = csv.writer(file)
-        writer.writerow(["QUOTES","AUTHORS"])
+        writer.writerow(["NAME","TITLE","EMAIL"])
         
-        for quote, author in zip(quotes,authors):
+        for name,title,email in zip(name,title,email):
+            writer.writerow([name.text, title.text, email.text])
             
-            for i,j in enumerate(quote):
-                if j == "" or j == "":
-                    quote[i] = ''
-            
-            writer.writerow([quote.text, author.text])
         file.close()
-        df = pd.read_csv("write_quotes_authors.csv")
-        print(df.head(10))
+        df = pd.read_csv("MODESTO.csv")
+        print(df)
     
     
     
