@@ -1,0 +1,14 @@
+def main(x):
+    y = []
+    for i in range(3,len(x),3):
+        y.append(
+            [x[i-3],
+            x[i-2],
+            x[i-1]])
+    print(y)
+
+if __name__ == "__main__":
+    x = []
+    for i in range(80):
+        x.append(i)
+    main(x)
