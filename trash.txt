@@ -12,3 +12,33 @@ if __name__ == "__main__":
     for i in range(80):
         x.append(i)
     main(x)
+
+________________________________
+
+rom selenium import webdriver
+from bs4 import BeautifulSoup
+import time
+
+#driver = webdriver.Firefox()
+driver = webdriver.Chrome()
+url = "http://www.librarything.com/search.php?search=The+Fellowship+of+the+Ring"
+driver.get(url)
+time.sleep(5)
+
+#This next line does not show the expected html.
+# print (driver.page_source)
+
+# But this finds it.
+body = driver.find_element_by_tag_name("body").get_attribute('innerHTML')
+driver .quit()
+soup = BeautifulSoup(body, "html.parser")
+ps = soup.find_all("p", {"class": "item"})
+for p in ps:
+    print (p.find("a")['href'].split('/')[2])
+
+3203347
+1354927
+20066223
+4819791
+7170476
+...

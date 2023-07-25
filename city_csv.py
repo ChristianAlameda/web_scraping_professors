@@ -13,6 +13,7 @@ import requests
 import csv
 import pandas as pd
 import lxml
+import os
 
 class taco:
     def __init__(self):
@@ -20,26 +21,53 @@ class taco:
 
 
 def create_for_modesto():
-    page_to_scrape = requests.get("http://people.mjc.edu/list.aspx")
+    page_to_scrape = requests.get("https://people.mjc.edu/list.aspx")
     soup = BeautifulSoup(page_to_scrape.text, "html.parser")
-    print(soup)
-    name = soup.findAll("a", attrs = {"class":"lnkName"})
-    
-    title = soup.findAll("span", attrs = {"class":"lblTitle"})
-    
-    email = soup.findAll("a", attrs = {"class":"lnkEmail"})
     
     with open("MODESTO.csv", "w", encoding='utf-8') as file:
     
         writer = csv.writer(file)
+        
         writer.writerow(["NAME","TITLE","EMAIL"])
         
-        for name,title,email in zip(name,title,email):
+        names = soup.findAll("a", attrs = {"class":"lnkName"})
+    
+        titles = soup.findAll("span", attrs = {"class":"lblTitle"})
+        
+        """emails = soup.findAll("a", attrs = {"class":"lnkEmail"})"""
+        emails = soup.findAll("li", attrs = {"class":"result"})
+        
+        for i in emails:
+            print(i)
+        #LISTS
+        fixed_titles = []
+        fixed_emails = []
+        
+        x = taco()
+        #IF NONE GET RID
+        #TITLE
+        for i in titles:
+            if identify_title(i.text):
+                fixed_titles.append(i)
+            else:
+                titles.insert(i,'None')
+                fixed_titles.append(x)
+        #EMAIL
+        for i in emails: 
+            if identify_email(i.text):
+                fixed_emails.append(i)
+            else:
+                emails.insert(i,'None')
+                fixed_emails.append(x)
+
+        
+            
+        for name,title,email in zip(names,fixed_titles,fixed_emails):
             writer.writerow([name.text, title.text, email.text])
             
-        file.close()
-        df = pd.read_csv("MODESTO.csv")
-        print(df)
+    file.close()
+    df = pd.read_csv("MODESTO.csv")
+    print(df)
     
 def create_for_merced():
     url_list = ["https://www.mccd.edu/directory/"]
@@ -114,6 +142,56 @@ def create_for_merced():
                 
     file.close()
     df = pd.read_csv("MERCED.csv").head(100)
+
+def create_for_delta():
+    url_list = ["https://www.deltacollege.edu/campus-directory"]
+    for i in range(1,56):
+        url_list.append('https://www.deltacollege.edu/campus-directory?page='+str(i))
+    
+    #NEED A USER AGENT
+    #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    os.remove("DELTA.csv")
+    
+    with open("DELTA.csv", "a", encoding='utf-8') as file:
+        
+        writer = csv.writer(file)
+        writer.writerow(["NAME","TITLE","DIVISION","PHONE","EMAIL","COLLEGE"])
+                
+        for url in url_list:
+            headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'}
+            
+            page_to_scrape = requests.get(url, headers=headers)
+
+            soup = BeautifulSoup(page_to_scrape.text, "html.parser")
+            
+            name_list = []
+        
+            names = soup.find_all("div", {"class": "title-name"})
+            for name in names:
+                
+               name_list.append(name.find("a")['href'].split('/')[2])
+            
+            
+            title = soup.findAll("div", attrs = {"class":"position"})
+            
+            division = soup.findAll("div", attrs = {"class":"department"})
+            
+            phone = soup.findAll("div", attrs = {"class":"phone"})
+            
+            email = soup.findAll("div", attrs = {"class":"email"})
+
+            
+            
+            
+            college = 'Delta'
+            for names,title,division,phone,email,college in zip(names,title,division,phone,email,college):
+                writer.writerow([names.text,title.text, division.text, phone.text, email.text, college])
+        
+                
+    file.close()
+    df = pd.read_csv("DELTA.csv").head(100)
+    
+    
     
 #123-213-2131
 def identify_phone_number(number):
@@ -123,8 +201,10 @@ def identify_phone_number(number):
 def identify_email(email):
     if "@" in email:
         return True
-    
-
+#Professor of adsfda
+def identify_title(title):
+    if title != None:
+        return True
 #[]
 def identify_campus(campus):
     if identify_email(campus) or identify_phone_number(campus):
@@ -133,4 +213,4 @@ def identify_campus(campus):
         return True
 
 if __name__ == "__main__":
-    create_for_merced()
+    create_for_modesto()
