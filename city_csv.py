@@ -19,6 +19,10 @@ class taco:
     def __init__(self):
         self.text = "None"
 
+class taco1:
+    def __init__(self):
+        self.text = 'DELTA'
+
 
 def create_for_modesto():
     page_to_scrape = requests.get("https://people.mjc.edu/list.aspx")
@@ -143,6 +147,7 @@ def create_for_merced():
     file.close()
     df = pd.read_csv("MERCED.csv").head(100)
 
+
 def create_for_delta():
     url_list = ["https://www.deltacollege.edu/campus-directory"]
     for i in range(1,56):
@@ -156,7 +161,7 @@ def create_for_delta():
         
         writer = csv.writer(file)
         writer.writerow(["NAME","TITLE","DIVISION","PHONE","EMAIL","COLLEGE"])
-                
+        
         for url in url_list:
             headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'}
             
@@ -164,30 +169,56 @@ def create_for_delta():
 
             soup = BeautifulSoup(page_to_scrape.text, "html.parser")
             
+            everything = soup.find_all("div",{"class":"directory-text-wrapper"})
+            #
+            """
+            <div class="directory-text-wrapper">
+                <div class="title-name">
+                    <a href="/person/sitha-sun">Sitha Sun</a>
+                </div>
+                <div class="position">Student Programs Assistant</div>
+                <div class="department">Financial Aid &amp; Scholarships</div>
+                <div class="email">
+                    <a href="mailto:sitha.sun@deltacollege.edu">sitha.sun@deltacollege.edu</a>
+                </div>
+                <div class="phone"></div>
+            </div>
+            """
+            #print(everything)
+            
+            #LIST OF THINGS
             name_list = []
-        
-            names = soup.find_all("div", {"class": "title-name"})
-            for name in names:
+            title_list = []
+            division_list = []
+            phone_list = []
+            email_list = []
+            x = taco1()
+            for thing in everything:
+                names = soup.find_all("div", {"class": "title-name"})
+                for name in names:
+                    name_list.append(name.find("a")['href'].split('/')[2])
                 
-               name_list.append(name.find("a")['href'].split('/')[2])
-            
-            
-            title = soup.findAll("div", attrs = {"class":"position"})
-            
-            division = soup.findAll("div", attrs = {"class":"department"})
-            
-            phone = soup.findAll("div", attrs = {"class":"phone"})
-            
-            email = soup.findAll("div", attrs = {"class":"email"})
-
-            
-            
-            
-            college = 'Delta'
-            for names,title,division,phone,email,college in zip(names,title,division,phone,email,college):
-                writer.writerow([names.text,title.text, division.text, phone.text, email.text, college])
-        
+                if thing.find("div",attrs = {"class":"position"}) != None:
+                    title_list.append(thing.find("div",attrs = {"class":"position"}))
+                else: title_list.append(x)
                 
+                if thing.find("div", attrs = {"class":"department"}) != None:
+                    division_list.append(thing.find("div", attrs = {"class":"department"}))
+                else: division_list.append(x)
+                
+                if thing.find("a", attrs = {"class":"phone-link"}) != None:
+                    phone_list.append(thing.find("a", attrs = {"class":"phone-link"}))
+                else: phone_list.append(x)
+                
+                if thing.find("div", attrs = {"class":"email"}) != None:
+                    email_list.append(thing.find("div", attrs = {"class":"email"}))
+                else: email_list.append(x)
+            
+            
+            for name,title,division,phone,email in zip(name_list,title_list,division_list,phone_list,email_list):
+                writer.writerow([name,title.text, division.text, phone.text, email.text])
+        
+            
     file.close()
     df = pd.read_csv("DELTA.csv").head(100)
     
@@ -213,4 +244,4 @@ def identify_campus(campus):
         return True
 
 if __name__ == "__main__":
-    create_for_modesto()
+    create_for_delta()
